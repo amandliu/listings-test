@@ -24,9 +24,19 @@
       <h3>Sorted by</h3>
       <a href="#" class="sort active" ><label>Relevance</label></a>
       <a href="#" class="sort" data-field="star_rating" data-direction="des"><label>Rating</label></a>
+      <a href="#" class="sort" data-field="price" data-direction="des"><label>Price</label></a>
 
       <div id="facets">
         <div class="st-custom-facets">
+          <h3>Prices</h3>
+          <input type="checkbox" class="price-filter" name="price" data-type="range" data-from="1" data-to="1" id="cheap">
+          <label for="cheap">$</label><br/>
+          <input type="checkbox" class="price-filter" name="price" data-type="range" data-from="1" data-to="2" id="moderate">
+          <label for="moderate">$$</label><br/>
+          <input type="checkbox" class="price-filter" name="price" data-type="range" data-from="1" data-to="3" id="expensive">
+          <label for="expensive">$$$</label><br/>
+          <input type="checkbox" class="price-filter" name="price" data-type="range" data-from="1" data-to="4" id="very-expensive">
+          <label for="very-expensive">$$$$</label><br/>
         </div>
         <div class="st-dynamic-facets">
         </div>
@@ -47,6 +57,10 @@
         sort: {
           field: undefined,
           direction: undefined
+        },
+        price: {
+          from: undefined,
+          to: undefined
         }
       };
 
@@ -57,6 +71,7 @@
           "<div>Neighborhood: {{neighborhood}}</div>",
           "<div>Rating: {{star_rating}} Stars</div>",
           "<div>Cuisines: {{cuisines}}</div>",
+          "<div>Price: {{price}}</div>",
         "</div>"
       ].join('') );
 
@@ -67,7 +82,8 @@
             borough: item['borough'],
             neighborhood: item['neighborhood'],
             star_rating: item['star_rating'],
-            cuisines: item['cuisines']
+            cuisines: item['cuisines'],
+            price: item['price']
           };
         return resultTemplate.render(data);
       };
@@ -148,20 +164,38 @@
         reloadResults();
       });
 
+      $('.price-filter').on('click', function(e) {
+        if ($(this).prop('checked')) {
+          $('.price-filter').prop('checked', false);
+          $(this).prop('checked', true);
+          window.searchConfig.price.from = $(this).data('from');
+          window.searchConfig.price.to = $(this).data('to');
+        } else {
+          window.searchConfig.price.from = undefined;
+          window.searchConfig.price.to = undefined;
+        }
+        reloadResults();
+      })
+
       var readFilters = function() {
         return {
           restaurants: {
             borough: window.searchConfig.facets['borough'],
             neighborhood: window.searchConfig.facets['neighborhood'],
             cuisines: window.searchConfig.facets['cuisines'],
-            star_rating: window.searchConfig.facets['star_rating']
+            star_rating: window.searchConfig.facets['star_rating'],
+            price: {
+              type: 'range',
+              from: window.searchConfig.price.from,
+              to: window.searchConfig.price.to
+            }
           }
         }
       }
 
       $('#st-search-input').swiftypeSearch({
         resultContainingElement: '#st-results-container',
-        engineKey: 'GRD2jKChdHuS4KKbrgWb',
+        engineKey: '-6xbLQxX23J8VHrxWAUB',
         renderFunction: customRenderFunction,
         sortField: readSortField,
         sortDirection: readSortDirection,
@@ -171,8 +205,8 @@
       });
 
       $('#st-search-input').swiftype({
-        fetchFields: {'restaurants': ['name','neighborhood','cuisines','borough']},
-        engineKey: 'GRD2jKChdHuS4KKbrgWb'
+        fetchFields: {'restaurants': ['name','borough','neighborhood','cuisines']},
+        engineKey: '-6xbLQxX23J8VHrxWAUB'
       });
     </script>
   </body>

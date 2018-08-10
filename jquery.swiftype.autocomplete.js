@@ -110,12 +110,21 @@
         }
       };
 
-
       $this.hideList = function(sync) {
         if (sync) {
           $listContainer.hide();
         } else {
           setTimeout(function() { $listContainer.hide(); }, 10);
+        }
+      };
+
+      $this.showNoResults = function () {
+        $list.empty();
+        if (config.noResultsMessage === undefined) {
+          $this.hideList();
+        } else {
+          $list.append($('<li />', { 'class': config.noResultsClass }).text(config.noResultsMessage));
+          $this.showList();
         }
       };
 
@@ -128,7 +137,7 @@
       };
 
       $this.listResults = function() {
-        return $(config.resultListSelector, $list);
+        return $(config.resultListSelector, $list).filter(':not(.' + config.noResultsClass + ')');
       };
 
       $this.activeResult = function() {
@@ -284,7 +293,7 @@
       });
       $this.focus(function () {
         setTimeout(function() { $this.select() }, 10);
-        if ($this.listResults().filter(':not(.' + config.noResultsClass + ')').length > 0) {
+        if ($this.listResults().length > 0) {
           $this.showList();
         }
       });
@@ -311,7 +320,7 @@
     params['sort_field'] = handleFunctionParam(config.sortField);
     params['sort_direction'] = handleFunctionParam(config.sortDirection);
     params['per_page'] = config.resultLimit;
-    params['highlight_fields'] = handleFunctionParam(config.highlightFields);
+    params['highlight_fields'] = config.highlightFields;
 
     var endpoint = Swiftype.root_url + '/api/v1/public/engines/suggest.json';
     $this.currentRequest = $.ajax({
@@ -325,8 +334,7 @@
         $this.cache.put(norm, data.records);
       } else {
         $this.addEmpty(norm);
-        $this.data('swiftype-list').empty();
-        $this.hideList();
+        $this.showNoResults();
         return;
       }
       processData($this, data.records, term);
@@ -336,8 +344,7 @@
   var getResults = function($this, term) {
     var norm = normalize(term);
     if ($this.isEmpty(norm)) {
-      $this.data('swiftype-list').empty();
-      $this.hideList();
+      $this.showNoResults();
       return;
     }
     var cached = $this.cache.get(norm);
@@ -384,9 +391,21 @@
       }
     };
 
+  var getNeighborhoods = function(results, attribute) {
+    var neighborhoods = [];
+
+    $.each(results, function(idx, result) {
+      neighborhoods = neighborhoods.concat(result[attribute]);
+    });
+    return neighborhoods;
+  };
+
   var defaultResultRenderFunction = function(ctx, results) {
     var $list = ctx.list,
       config = ctx.config;
+    var document_type = "restaurants";
+    var field_name = "neighborhood";
+    var neighborhoods = getNeighborhoods(results[document_type], field_name);
 
     $.each(results, function(document_type, items) {
       $.each(items, function(idx, item) {
@@ -430,13 +449,13 @@
     return undefined;
   };
 
-	// simple client-side LRU Cache, based on https://github.com/rsms/js-lru
+  // simple client-side LRU Cache, based on https://github.com/rsms/js-lru
 
-	function LRUCache(limit) {
-	  this.size = 0;
-	  this.limit = limit;
-	  this._keymap = {};
-	}
+  function LRUCache(limit) {
+    this.size = 0;
+    this.limit = limit;
+    this._keymap = {};
+  }
 
   LRUCache.prototype.put = function (key, value) {
     var entry = {

@@ -418,6 +418,13 @@
     return '<p class="name">' + Swiftype.htmlEscape(item['name']) + '</p>';
   };
 
+  var customRenderFunction = function(document_type, item) {
+    var out = '<p class="name">' + item['name'] + '</p>';
+    return out.concat('<p class="borough">' + item['borough'] + '</p>' +
+      '<p class="neighborhood">' + item['neighborhood'] + '</p>' +
+      '<p class="cuisines">' + item['cuisines'] + '</p>');
+  };
+
   var defaultOnComplete = function(item, prefix) {
     window.location = item['url'];
   };
@@ -562,7 +569,7 @@
     fetchFields: undefined,
     highlightFields: undefined,
     noResultsClass: 'noResults',
-    noResultsMessage: undefined,
+    noResultsMessage: 'None found',
     onComplete: defaultOnComplete,
     resultRenderFunction: defaultResultRenderFunction,
     renderFunction: defaultRenderFunction,
